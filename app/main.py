@@ -23,6 +23,10 @@ async def startup_event():
 def Health():
     return {"status": "healthy"}
 
+@app.get("/ping")
+def ping():
+    return {"ping": "pong!"}
+
 
 @app.get("/items/{item_id}") # Aqui va la ruta del url a la que se hace el request
 def read_item(item_id: int, q: Union[str, None] = None): # Los parametros que recibe el request
