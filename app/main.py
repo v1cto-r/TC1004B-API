@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .connection import init_db, close_db
 
-app = FastAPI()
+app = FastAPI(root_path="/api/1")
 
 # CORS setup
 
