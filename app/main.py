@@ -104,7 +104,7 @@ def get_sensor(sensor_id: int):
             
     return sensor
 
-@app.post("/sensor/{sensor_id}", response_model=SensorDataBase, status_code=201)
+@app.post("/sensors/{sensor_id}", response_model=SensorDataBase, status_code=201)
 def post_sensor_data(sensor_id: int, data: CreateSensorDataBase):
     with get_db() as db:
         result = db.execute(text("SELECT * FROM sensors WHERE id = :id"), {"id": sensor_id})
@@ -128,7 +128,7 @@ def post_sensor_data(sensor_id: int, data: CreateSensorDataBase):
             
     return created_data
 
-@app.get("/sensor/{sensor_id}", response_model=list[SensorDataBase])
+@app.get("/sensors/{sensor_id}", response_model=list[SensorDataBase])
 def get_sensor_data(sensor_id: int, from_timestamp: Union[str, None] = None, to_timestamp: Union[str, None] = None):
     with get_db() as db:
         result = db.execute(text("SELECT * FROM sensors WHERE id = :id"), {"id": sensor_id})
@@ -152,7 +152,7 @@ def get_sensor_data(sensor_id: int, from_timestamp: Union[str, None] = None, to_
         
     return data
 
-@app.post("/sensor/", response_model=dict[int, list[SensorDataBase]])
+@app.post("/sensors/", response_model=dict[int, list[SensorDataBase]])
 def post_multiple_sensor_data(data_list: list[CreateSensorDataBase]):
     if not data_list:
         return {}
@@ -226,7 +226,7 @@ def post_multiple_sensor_data(data_list: list[CreateSensorDataBase]):
             
     return response
 
-@app.get("/sensor/", response_model=dict[int, list[SensorDataBase]])
+@app.get("/sensors/", response_model=dict[int, list[SensorDataBase]])
 def get_all_sensor_data(from_timestamp: Union[str, None] = None, to_timestamp: Union[str, None] = None):
     with get_db() as db:
         query = "SELECT * FROM sensor_data WHERE 1=1"
