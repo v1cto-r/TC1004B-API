@@ -40,7 +40,27 @@ async def startup_event():
 
 @app.get("/")
 def Health():
-    return {"status": "healthy"}
+    """
+    Health check endpoint that verifies API and database connectivity.
+    
+    Returns:
+        Dictionary with status of API and database connections.
+        Status values: "healthy", "degraded", "error"
+    """
+    health_status = {
+        "api": "healthy",
+        "db": "healthy"
+    }
+    
+    try:
+        with get_db() as db:
+            # Simple ping query to check database connectivity
+            db.execute(text("SELECT 1"))
+    except Exception as e:
+        health_status["db"] = "error"
+        health_status["api"] = "degraded"
+    
+    return health_status
 
 @app.get("/ping")
 def ping():
@@ -49,6 +69,7 @@ def ping():
 @app.get("/pong")
 def pong():
     return {"pong": "ping?"}
+
 
 @app.get("/manage/sensors", response_model=list[SensorBase])
 def read_sensors():
