@@ -5,6 +5,8 @@ from sqlalchemy.pool import QueuePool
 from contextlib import contextmanager
 from typing import Generator
 from app.settings import settings
+import time
+from sqlalchemy.exc import OperationalError
 
 # Logger setup
 db_logger = logging.getLogger("database")
@@ -103,16 +105,40 @@ def get_db_session() -> Session:
 def init_db():
     """
     Initialize database tables.
-    Creates all tables defined in models that inherit from Base.
+    Retries on connection failure to handle the container startup race condition.
     """
-    try:
-        db_logger.info("🔨 Initializing database tables...")
-        engine = get_engine()
-        Base.metadata.create_all(bind=engine)
-        db_logger.info("✅ Database tables initialized successfully")
-    except Exception as e:
-        db_logger.error(f"❌ Failed to initialize database: {e}")
-        raise
+    db_logger.info("🔨 Initializing database tables...")
+    engine = get_engine()
+    
+    retries = 10  # Number of retries
+    delay = 3   # Seconds to wait between retries
+    
+    while retries > 0:
+        try:
+            # This is the line that tries to connect
+            Base.metadata.create_all(bind=engine)
+            
+            # If it succeeds, log it and break the loop
+            db_logger.info("✅ Database tables initialized successfully")
+            break
+            
+        except OperationalError as e:
+            # If it fails, log the warning and countdown retries
+            db_logger.warning(f"Database connection failed: {e}")
+            retries -= 1
+            
+            if retries == 0:
+                # If we run out of retries, log error and re-raise
+                db_logger.error("❌ Could not connect to database after all retries.")
+                raise  
+            
+            db_logger.info(f"Retrying in {delay} seconds... ({retries} retries left)")
+            time.sleep(delay)
+            
+        except Exception as e:
+            # Catch any other unexpected errors
+            db_logger.error(f"❌ Failed to initialize database: {e}")
+            raise
 
 
 def close_db():
