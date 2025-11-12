@@ -173,7 +173,7 @@ def get_sensor_data(sensor_id: int, from_timestamp: Union[str, None] = None, to_
         
     return data
 
-@app.post("/sensors/", response_model=dict[int, list[SensorDataBase]])
+@app.post("/sensors", response_model=dict[int, list[SensorDataBase]])
 def post_multiple_sensor_data(data_list: list[CreateSensorDataBase]):
     if not data_list:
         return {}
@@ -247,7 +247,7 @@ def post_multiple_sensor_data(data_list: list[CreateSensorDataBase]):
             
     return response
 
-@app.get("/sensors/", response_model=dict[int, list[SensorDataBase]])
+@app.get("/sensors", response_model=dict[int, list[SensorDataBase]])
 def get_all_sensor_data(from_timestamp: Union[str, None] = None, to_timestamp: Union[str, None] = None):
     with get_db() as db:
         query = "SELECT * FROM sensor_data WHERE 1=1"
