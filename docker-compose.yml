@@ -2,24 +2,36 @@ version: "3.8"
 
 services:
   mysql:
-      image: mysql:8.0
-      container_name: iot_mysql
-      ports:
-        - "4002:3306"
-      environment:
-        - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-        - MYSQL_DATABASE=${MYSQL_DATABASE}
-        - MYSQL_USER=${MYSQL_USER}
-        - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      volumes:
-        - mysql_data:/var/lib/mysql
-      healthcheck:
-        test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
-        interval: 5s
-        timeout: 3s
-        retries: 10
-        start_period: 30s
-      command: [ "mysqld", "--bind-address=0.0.0.0", "--default-authentication-plugin=mysql_native_password" ]
+    image: mariadb:10.6 
+    container_name: iot_mysql
+    ports:
+      - "4002:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    
+    command: 
+      - --port=3306
+      - --bind-address=0.0.0.0
+      - --performance-schema=OFF 
+      - --innodb-buffer-pool-size=64M 
+      - --max-connections=20 
+    
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p${MYSQL_ROOT_PASSWORD} || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   api:
     build: .
@@ -28,18 +40,22 @@ services:
     ports:
       - "4001:4001"
     environment:
-      - ENV=development
+      - ENV=production
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_HOST=mysql
-    command: uvicorn app.main:app --host 0.0.0.0 --port 4001 --reload
-    volumes:
-      - ./app:/code/app
+        
     depends_on:
       mysql:
         condition: service_healthy
-    restart: on-failure
+    restart: unless-stopped
+    
+    # Limit Python App RAM usage
+    deploy:
+      resources:
+        limits:
+          memory: 300M
 
 volumes:
   mysql_data:
