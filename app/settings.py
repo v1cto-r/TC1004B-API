@@ -25,6 +25,11 @@ class Settings(BaseSettings):
     MYSQL_PASSWORD: str
     MYSQL_HOST: str
 
+    TWILIO_SID: str
+    TWILIO_KEY: str
+    TWILIO_FROM: str
+    TWILIO_TO: str
+
     @property
     def database_url(self) -> str:
         """

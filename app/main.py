@@ -1,9 +1,10 @@
+from .whatsapp import message as send_whatsapp_message
 from typing import Union
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from .connection import init_db, close_db, get_db
-from .models import SensorBase, CreateSensorBase, SensorDataBase, CreateSensorDataBase
+from .models import SensorBase, CreateSensorBase, SensorDataBase, CreateSensorDataBase, NotificationMessage
 
 app = FastAPI(root_path="/api/1")
 
@@ -273,6 +274,16 @@ def get_all_sensor_data(from_timestamp: Union[str, None] = None, to_timestamp: U
             response[sensor_id].append(row)
             
     return response
+
+@app.post("/notify", response_model=dict[str, str])
+def send_notification(notification: NotificationMessage):
+
+    try:
+        send_whatsapp_message(body=notification.message)
+        return {"status": "Message sent successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to send message: {str(e)}")
+    
 
 @app.on_event("shutdown")
 async def shutdown_event():

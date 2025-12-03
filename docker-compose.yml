@@ -45,6 +45,10 @@ services:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_HOST=mysql
+      - TWILIO_SID=${TWILIO_SID}
+      - TWILIO_KEY=${TWILIO_KEY}
+      - TWILIO_FROM=${TWILIO_FROM}
+      - TWILIO_TO=${TWILIO_TO}
         
     depends_on:
       mysql:

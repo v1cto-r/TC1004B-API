@@ -33,3 +33,8 @@ class SensorDataBase(BaseModel):
     value: float = Field(..., description="Sensor reading value")
     timestamp: datetime = Field(..., description="Timestamp of the reading")
 
+# --- Message models ---
+
+class NotificationMessage(BaseModel):
+    """Model for notification messages"""
+    message: str = Field(..., description="The message content to send")
